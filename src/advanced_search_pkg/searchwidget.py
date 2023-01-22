@@ -1,41 +1,17 @@
-'''
-############################################################################
-#    Copyright (C) 2009 by Jorrit Vander Mynsbrugge                        #
-#    jorrit.vm@telenet.be                                                  #
-#                                                                          #
-#    This program is free software; you can redistribute it and#or modify  #
-#    it under the terms of the GNU General Public License as published by  #
-#    the Free Software Foundation; either version 2 of the License, or     #
-#    (at your option) any later version.                                   #
-#                                                                          #
-#    This program is distributed in the hope that it will be useful,       #
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of        #
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
-#    GNU General Public License for more details.                          #
-#                                                                          #
-#    You should have received a copy of the GNU General Public License     #
-#    along with this program; if not, write to the                         #
-#    Free Software Foundation, Inc.,                                       #
-#    59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             #
-############################################################################
-'''
-
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
-from ui_searchwidget import *
-from items import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from .ui_searchwidget import *
+from .items import *
 
 class searchwidget(QWidget, Ui_searchwidget):
     
     def __init__(self, parent=None):
-        super(searchwidget, self).__init__(parent);
+        super(searchwidget, self).__init__(parent)
         
         self.setupUi(self)
         self.statebutton.setIcon(QIcon("done.png"))
         self.clearsearchedit.setIcon(QIcon("clear.ico"))
-        
-        #extra thread starten voor de eigenlijke search
-        
         
         self.searchbot = searchbot(self)
         
@@ -48,15 +24,16 @@ class searchwidget(QWidget, Ui_searchwidget):
            
     def setupSlots(self):
         #zet hier alle slots die voor een search dienen
-        QObject.connect(self.tree,SIGNAL("itemExpanded(QTreeWidgetItem*)"),self.updatebrowser) 
-        QObject.connect(self.tree,SIGNAL("itemActivated(QTreeWidgetItem*, int)"),self.updatepath)
-        QObject.connect(self.tree,SIGNAL("itemClicked (QTreeWidgetItem *,int)"),self.updatepath)
-        QObject.connect(self.pathedit,SIGNAL("returnPressed()"),self.browsertofolder)
-        QObject.connect(self.searchedit,SIGNAL("returnPressed()"),self.preparesearch)
-        QObject.connect(self.searchbot,SIGNAL("foundone(QString)"),self.updateresults)
-        QObject.connect(self.searchbot,SIGNAL("finished()"),self.finishsearch)
-        QObject.connect(self.statebutton, QtCore.SIGNAL("clicked()"), self.stopnow)
-        QObject.connect(self.about, QtCore.SIGNAL("clicked()"), self.showabout)
+        # QObject.connect(self.tree,SIGNAL("itemExpanded(QTreeWidgetItem*)"),self.updatebrowser) 
+        # QObject.connect(self.tree,SIGNAL("itemActivated(QTreeWidgetItem*, int)"),self.updatepath)
+        # QObject.connect(self.tree,SIGNAL("itemClicked (QTreeWidgetItem *,int)"),self.updatepath)
+        # QObject.connect(self.pathedit,SIGNAL("returnPressed()"),self.browsertofolder)
+        # QObject.connect(self.searchedit,SIGNAL("returnPressed()"),self.preparesearch)
+        # QObject.connect(self.searchbot,SIGNAL("foundone(QString)"),self.updateresults)
+        # QObject.connect(self.searchbot,SIGNAL("finished()"),self.finishsearch)
+        # QObject.connect(self.statebutton, QtCore.SIGNAL("clicked()"), self.stopnow)
+        # QObject.connect(self.about, QtCore.SIGNAL("clicked()"), self.showabout)
+        pass
     
     def getroot(self):
         browser = QDir("/")
@@ -79,11 +56,10 @@ class searchwidget(QWidget, Ui_searchwidget):
         self.pathedit.setText("my_computer")
         self.top = thiscomp
         
-        
         for item in listing:
             x = treeitem(thiscomp)
-            x.settext(QString(item))
-            x.seticon(QIcon("drive.jpg"))
+            x.settext(item)
+            x.seticon(QIcon("resources/drive.jpg"))
             x.setpath(item)
             x.fetchchildren()
     
@@ -118,12 +94,7 @@ class searchwidget(QWidget, Ui_searchwidget):
                 return parent.child(i)
             i += 1
         return None
-       
-    
-    def test(self):
-        print "koetsiekoetsie"
-        
-    
+          
     def updatepath(self, item, index):
         self.pathedit.setText(item.path)
     
@@ -167,7 +138,7 @@ class searchwidget(QWidget, Ui_searchwidget):
                 self.startsearch(keywords,path,flags)
         
     def startsearch(self,keywords,path,flags):
-        self.statebutton.setIcon(QIcon("searching.png"))
+        self.statebutton.setIcon(QIcon("resources/searching.png"))
         self.searchbot.setupbot(self.resultslist, self.recursecb, keywords, path, flags)
         self.searchbot.wait()
         self.searchbot.start()
@@ -180,7 +151,7 @@ class searchwidget(QWidget, Ui_searchwidget):
         self.searchbot.stop = True
     
     def finishsearch(self):
-        self.statebutton.setIcon(QIcon("done.png"))
+        self.statebutton.setIcon(QIcon("resources/done.png"))
 
     def showabout(self):
         self.aboutlabel.show()
@@ -216,9 +187,8 @@ class searchbot(QThread):
             if x == len(keywords):
                 #all keywords found
                 if entry.fileName() != "." and entry.fileName() != "..":
-                    #GEVONDEN entry$
                     stringtoreturn = entry.absoluteFilePath()
-                    self.emit(SIGNAL("foundone(QString)"), stringtoreturn)
+                    # self.emit(SIGNAL("foundone(QString)"), stringtoreturn) # todo fix
         
         for entry in listing:
             if entry.fileName() != "." and entry.fileName() != "..":
@@ -227,5 +197,5 @@ class searchbot(QThread):
         
     def run(self):
         self.startsearch(self.keywords, self.path, self.flags)
-        self.emit(SIGNAL("finished()"))    
+        # self.emit(SIGNAL("finished()")) # todo fix
         

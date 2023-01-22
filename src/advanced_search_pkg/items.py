@@ -1,10 +1,10 @@
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 
 class treeitem(QTreeWidgetItem):
     def __init__(self, parent = None):
-        super(treeitem, self).__init__(parent);
-        #QTreeWidgetItem.__init__(parent);
+        super(treeitem, self).__init__(parent)
         self.parent = parent
     
     def seticon(self, iconlink):
@@ -32,24 +32,23 @@ class treeitem(QTreeWidgetItem):
             if (entry.fileName() == ".") or (entry.fileName() == ".." ):
                 continue 
             child = treeitem(self)
-            child.settext(QString(entry.fileName()))
+            child.settext(entry.fileName())
             child.setpath(entry.absoluteFilePath())
             if entry.isDir():
-                child.seticon(QIcon("folder.jpg"))
+                child.seticon(QIcon("resources/folder.jpg"))
             else:
-                child.seticon(QIcon("file.png"))
+                child.seticon(QIcon("resources/file.png"))
                 
                 
 class resultitem(QListWidgetItem):
     def __init__(self, entry, parent = None):
-        super(resultitem, self).__init__(parent);
-        #QTreeWidgetItem.__init__(parent);
+        super(resultitem, self).__init__(parent)
         self.parent = parent
         self.fileinfo = entry
         
         if self.fileinfo.isDir():
-            self.setIcon(QIcon("folder.jpg"))
+            self.setIcon(QIcon("resources/folder.jpg"))
         else:
-            self.setIcon(QIcon("file.png"))
+            self.setIcon(QIcon("resources/file.png"))
             
         self.setText(self.fileinfo.fileName())
