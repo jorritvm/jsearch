@@ -6,9 +6,10 @@ class treeitem(QTreeWidgetItem):
     def __init__(self, parent = None):
         super(treeitem, self).__init__(parent)
         self.parent = parent
+        self.path = ""
     
     def seticon(self, iconlink):
-        self.setIcon(0,QIcon(iconlink))
+        self.setIcon(0, QIcon(iconlink))
         
     def toggle_expanded(self):
         if self.isExpanded():
@@ -17,7 +18,7 @@ class treeitem(QTreeWidgetItem):
             self.setExpanded(True)
             
     def settext(self, x):
-        self.setText(0,x)
+        self.setText(0, x)
         
     def gettext(self):
         return self.text(0)
@@ -41,7 +42,7 @@ class treeitem(QTreeWidgetItem):
                 
                 
 class resultitem(QListWidgetItem):
-    def __init__(self, entry, parent = None):
+    def __init__(self, entry, parent=None):
         super(resultitem, self).__init__(parent)
         self.parent = parent
         self.fileinfo = entry

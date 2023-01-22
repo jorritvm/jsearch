@@ -22,7 +22,7 @@ class main(QWidget):
 
         
     def setupUi(self):
-        self.setWindowTitle("Advanced Search Engine by Jorrit Vander Mynsbrugge")
+        self.setWindowTitle("jsearch: a local file search app")
         self.resize(QSize(809,618))
         
         self.tabwidget = QTabWidget()
@@ -49,6 +49,5 @@ class main(QWidget):
             self.createsearchwidget()
 
     def setupSlots(self):
-        # QObject.connect(self.newtab,SIGNAL("activated()"),self.createsearchwidget)
-        # QObject.connect(self.closeactivetab,SIGNAL("activated()"),self.deletesearchwidget)
-        pass
+        self.newtab.activated.connect(self.createsearchwidget)
+        self.closeactivetab.activated.connect(self.deletesearchwidget)

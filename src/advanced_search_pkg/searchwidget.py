@@ -10,8 +10,8 @@ class searchwidget(QWidget, Ui_searchwidget):
         super(searchwidget, self).__init__(parent)
         
         self.setupUi(self)
-        self.statebutton.setIcon(QIcon("done.png"))
-        self.clearsearchedit.setIcon(QIcon("clear.ico"))
+        self.statebutton.setIcon(QIcon("resources/done.png"))
+        self.clearsearchedit.setIcon(QIcon("resources/clear.ico"))
         
         self.searchbot = searchbot(self)
         
@@ -19,22 +19,20 @@ class searchwidget(QWidget, Ui_searchwidget):
         
         self.top = None
         self.buildbrowser()
-        self.aboutlabel = QLabel("<h2>Advanced file search by jvm</h2>Shortcuts:<br />ctrl+t: new tab<br />ctrl+w: close current tab")
+        self.aboutlabel = QLabel("<h2>A local file search app by jvm</h2>Shortcuts:<br />ctrl+t: new tab<br />ctrl+w: close current tab")
 
            
     def setupSlots(self):
-        #zet hier alle slots die voor een search dienen
-        # QObject.connect(self.tree,SIGNAL("itemExpanded(QTreeWidgetItem*)"),self.updatebrowser) 
-        # QObject.connect(self.tree,SIGNAL("itemActivated(QTreeWidgetItem*, int)"),self.updatepath)
-        # QObject.connect(self.tree,SIGNAL("itemClicked (QTreeWidgetItem *,int)"),self.updatepath)
-        # QObject.connect(self.pathedit,SIGNAL("returnPressed()"),self.browsertofolder)
-        # QObject.connect(self.searchedit,SIGNAL("returnPressed()"),self.preparesearch)
-        # QObject.connect(self.searchbot,SIGNAL("foundone(QString)"),self.updateresults)
-        # QObject.connect(self.searchbot,SIGNAL("finished()"),self.finishsearch)
-        # QObject.connect(self.statebutton, QtCore.SIGNAL("clicked()"), self.stopnow)
-        # QObject.connect(self.about, QtCore.SIGNAL("clicked()"), self.showabout)
-        pass
-    
+        self.tree.itemExpanded.connect(lambda x: self.updatebrowser(x))
+        self.tree.itemActivated.connect(lambda x, y: self.updatepath(x, y))
+        self.tree.itemClicked.connect(lambda x, y: self.updatepath(x, y))
+        self.pathedit.returnPressed.connect(self.browsertofolder)
+        self.searchedit.returnPressed.connect(self.preparesearch)
+        self.searchbot.foundone.connect(lambda x: self.updateresults(x))
+        self.searchbot.finished.connect(self.finishsearch)
+        self.statebutton.clicked.connect(self.stopnow)
+        self.about.clicked.connect(self.showabout)
+
     def getroot(self):
         browser = QDir("/")
         alfabet = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
@@ -49,7 +47,7 @@ class searchwidget(QWidget, Ui_searchwidget):
         listing = self.getroot()
         thiscomp = treeitem(self.tree)
         thiscomp.settext("My Computer")
-        thiscomp.seticon("desktop.ico")
+        thiscomp.seticon("resources/desktop.ico")
         thiscomp.setpath("my_computer")
         thiscomp.toggle_expanded()
         self.tree.setCurrentItem(thiscomp)
@@ -71,7 +69,7 @@ class searchwidget(QWidget, Ui_searchwidget):
     
     def browsertofolder(self):
         path = self.pathedit.text()
-        path = path.replace("\\","/")
+        path = path.replace("\\", "/")
         pathpieces = path.split("/")
         
         parent = self.top
@@ -135,9 +133,9 @@ class searchwidget(QWidget, Ui_searchwidget):
                 self.searchedit.setText("CAN'T SEARCH IN 'MY COMPUTER' - SELECT DRIVE")
             else:
                 keywords = self.searchedit.text().split(" ")
-                self.startsearch(keywords,path,flags)
+                self.startsearch(keywords, path, flags)
         
-    def startsearch(self,keywords,path,flags):
+    def startsearch(self, keywords, path, flags):
         self.statebutton.setIcon(QIcon("resources/searching.png"))
         self.searchbot.setupbot(self.resultslist, self.recursecb, keywords, path, flags)
         self.searchbot.wait()
@@ -158,10 +156,14 @@ class searchwidget(QWidget, Ui_searchwidget):
 
         
 class searchbot(QThread):
+    # create my custom signals
+    foundone = pyqtSignal(str)
+    finished = pyqtSignal()
+
     def __init__(self, parent=None):
         super(searchbot, self).__init__(parent)
         self.stop = False
-    
+
     def setupbot(self, resultslist, recursecb, keywords, path, flags):
         self.resultslist = resultslist
         self.recursecb = recursecb
@@ -175,27 +177,27 @@ class searchbot(QThread):
             return False
         
         dir = QDir(path)
-        listing = dir.entryInfoList(flags,QDir.DirsFirst)
+        listing = dir.entryInfoList(flags, QDir.DirsFirst)
     
         for entry in listing:
-            e = entry.fileName().toLower()
+            e = entry.fileName().lower()
             x = 0
             for key in keywords:
-                k = key.toLower()
-                if e.indexOf(k, 0, Qt.CaseInsensitive) > -1:
+                k = key.lower()
+                if k in e:
                     x +=1
             if x == len(keywords):
                 #all keywords found
                 if entry.fileName() != "." and entry.fileName() != "..":
                     stringtoreturn = entry.absoluteFilePath()
-                    # self.emit(SIGNAL("foundone(QString)"), stringtoreturn) # todo fix
+                    self.foundone.emit(stringtoreturn)
         
         for entry in listing:
             if entry.fileName() != "." and entry.fileName() != "..":
                 if entry.isDir() and self.recursecb.isChecked():
-                    self.startsearch(keywords,entry.filePath(),flags)
+                    self.startsearch(keywords, entry.filePath(), flags)
         
     def run(self):
         self.startsearch(self.keywords, self.path, self.flags)
-        # self.emit(SIGNAL("finished()")) # todo fix
+        self.finished.emit()
         
